@@ -1,7 +1,7 @@
 # IDEs
 .dbeaver
 .idea
-Scripts/Script*.sql
+
 
 # Environments
 .venv
