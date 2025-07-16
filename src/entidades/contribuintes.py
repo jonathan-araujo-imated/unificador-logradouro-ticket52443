@@ -7,24 +7,24 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def job(ids_bairros_filtro, id_bairro_novo):
-    log.info("Iniciando o job de atualização de Contribuintes -> Bairros.")
+def job(ids_logradouros_filtro, id_logradouro_novo):
+    log.info("Iniciando o job de atualização de Contribuintes -> Logradouros.")
         
-    if not ids_bairros_filtro:
-        log.error("ids_bairros_filtro vazio.")
+    if not ids_logradouros_filtro:
+        log.error("ids_logradouros_filtro vazio.")
         return
-    if not id_bairro_novo:
-        log.error("id_bairro_novo vazio.")
+    if not id_logradouro_novo:
+        log.error("id_logradouro_novo vazio.")
         return
     
-    for bairro in ids_bairros_filtro:
+    for logradouro in ids_logradouros_filtro:
 
-        contribuintes = get_contribuintes_filtro(bairro)
+        contribuintes = get_contribuintes_filtro(logradouro)
         if not contribuintes:
-            log.error(f"Sem registros de contribuintes para o ID_BAIRRO: {bairro}.")
+            log.error(f"Sem registros de contribuintes para o ID_LOGRADOURO: {logradouro}.")
             continue
 
-        for contribuinte in tqdm(contribuintes, desc=f"Atualizando Contribuinte [Bairro -> {bairro}]"):
+        for contribuinte in tqdm(contribuintes, desc=f"Atualizando Contribuinte [Logradouro -> {logradouro}]"):
             id_contribuinte = contribuinte["id_contribuinte"]
             getrow = getrows_contribuinte(id_contribuinte)
             if getrow:
@@ -37,24 +37,50 @@ def job(ids_bairros_filtro, id_bairro_novo):
                 log.error(f"Falha ao consultar(GET) ID_CONTRIBUINTE: {id_contribuinte}")
                 continue
 
-            put_contribuinte(contribuinte_dados, id_bairro_novo)
+            put_contribuinte(contribuinte_dados, id_logradouro_novo)
 
 
-def get_contribuintes_filtro(id_bairro):
-    getrows = getrows_contribuintes_filtro(id_bairro)
-    if not getrows:
-        log.info(f"Sem contribuintes para o ID_BAIRRO: {id_bairro}.")
-        return
+def get_contribuintes_filtro(id_logradouro):
+    url_ = "https://tributos.betha.cloud/tributos/dados/api/contribuintes/enderecos"
+           
+    headers_ = {
+        "Authorization": os.getenv("TOKEN"),
+        "Content-Type": "application/json",
+        "user-access": os.getenv("USER_ACESS")
+    }
+
+    limit = 100
+    offset = 0
     todos_contribuintes = []
+    has_next = True
     
-    for item in getrows:
-        id_contribuinte = item[0]
-        id_bairro = item[1]
+    while has_next:
+        params_ = {
+            "filter": f"(logradouro.id in ({id_logradouro}) and principal='SIM')",
+            "limit": limit,
+            "offset": offset
+        }
 
-        ids_contribuinte = [{"id_contribuinte": id_contribuinte, "id_bairro": id_bairro}]
+        try:
+            response = requests.get(url_, params=params_, headers=headers_)
+        except (Exception, requests.exceptions.RequestException) as e:
+            log.error("-> " + str(e))
+            break
+
+        if response.status_code != 200:
+            log.error(f"-> {response.status_code} {response.text}")
+            break
+
+        retorno = response.json()
+
+        itens = retorno["content"]
+        ids_contribuinte = [{"id_contribuinte": item["idContribuinte"], "id_logradouro": id_logradouro} for item in itens if "idContribuinte" in item]
         todos_contribuintes.extend(ids_contribuinte)
-        
-    log.info(f"-> Total de Constribuintes filtrados: {len(todos_contribuintes)}")
+
+        has_next = retorno.get("hasNext", False)
+        offset += limit
+
+    log.info(f"-> Total de Contribuintes filtrados: {len(todos_contribuintes)}")
     
     return todos_contribuintes
 
@@ -82,13 +108,13 @@ def get_contribuinte(id_contribuinte):
     
     id_contribuinte_ret = retorno["id"]
     codigo_contribuinte_ret = retorno["codigo"]
-    id_bairro_ret = retorno["enderecos"][0]["bairro"].get("id")
+    id_logradouro_ret = retorno["enderecos"][0]["logradouro"].get("id")
     dados_json = json.dumps(retorno, ensure_ascii=False)
     # dados_json = retorno
 
     ret_contribuinte = {"id_contribuinte": id_contribuinte_ret, 
                   "codigo_contribuinte": codigo_contribuinte_ret,
-                  "id_bairro": id_bairro_ret, 
+                  "id_logradouro": id_logradouro_ret, 
                   "dados_json": dados_json} 
     
     return ret_contribuinte
@@ -98,7 +124,7 @@ def inserir_contribuinte_dados(contribuinte):
         log.info("Nenhum Contribuinte para inserir.")
         return
 
-    tabela_nome = "contribuintes_dados"
+    tabela_nome = "contribuintes_logradouro_dados"
     colunas = [
         'id_contribuinte',
         'codigo_contribuinte',
@@ -125,7 +151,7 @@ def getrows_contribuinte(id_contribuinte):
                         id_contribuinte,
                         codigo_contribuinte,
                         situacao
-                    from contribuintes_dados
+                    from contribuintes_logradouro_dados
                     where id_contribuinte = '{id_contribuinte}' 
                     """
                 )
@@ -136,7 +162,7 @@ def getrows_contribuinte(id_contribuinte):
         return None
     
 
-def getrows_contribuintes_filtro(id_bairro):
+def getrows_contribuintes_filtro(id_logradouro):
     try:
         with db_manager.connect() as cnx:
             with cnx.cursor() as c:
@@ -144,9 +170,9 @@ def getrows_contribuintes_filtro(id_bairro):
                     f"""
                     select
                         id_contribuinte,
-                        id_bairro
-                    from contribuintes_filtro
-                    where id_bairro = '{id_bairro}'
+                        id_logradouro
+                    from contribuintes_logradouro_filtro
+                    where id_logradouro = '{id_logradouro}'
                     """
                 )
 
@@ -156,10 +182,14 @@ def getrows_contribuintes_filtro(id_bairro):
         return None
 
 
-def definir_body_put(contribuinte, id_bairro):
+def definir_body_put(contribuinte, id_logradouro):
 
     if not contribuinte:
-        log.info("Nenhum resultado de 'contribuintes_dados' .")
+        log.info("Nenhum resultado de 'contribuintes_logradouro_dados'.")
+        return
+    
+    if not id_logradouro:
+        log.info("Nenhum id_logradouro informado.")
         return
     
     dados_json = contribuinte["dados_json"]
@@ -170,20 +200,20 @@ def definir_body_put(contribuinte, id_bairro):
             print("Erro ao fazer json.loads em dados_json:", e)
             dados_json = {}
     
-    dados_json["enderecos"][0]["bairro"] = {"id": id_bairro}
+    dados_json["enderecos"][0]["logradouro"] = {"id": id_logradouro}
     dados_json_str = json.dumps(dados_json, ensure_ascii=False)
     body = dados_json_str
 
     return body
 
 
-def put_contribuinte(contribuinte, id_bairro):
+def put_contribuinte(contribuinte, id_logradouro):
     id_contribuinte = contribuinte["id_contribuinte"]
     if not id_contribuinte:
         log.error("PUT -> id_contribuinte não encontrado.")
         return
     
-    body = definir_body_put(contribuinte, id_bairro)
+    body = definir_body_put(contribuinte, id_logradouro)
 
     if not body:
         log.info("Nenhum body 'definir_body_put()'.")
@@ -214,9 +244,9 @@ def put_contribuinte(contribuinte, id_bairro):
     retorno = response.json()
     
     id_contribuinte_ret = retorno["id"]
-    bairro_ret = retorno["enderecos"][0]["bairro"]
+    logradouro_ret = retorno["enderecos"][0]["logradouro"]
 
-    ret_contribuinte = {"id_contribuinte": id_contribuinte_ret, "bairro": bairro_ret} 
+    ret_contribuinte = {"id_contribuinte": id_contribuinte_ret, "logradouro": logradouro_ret} 
     
     log.info(f"-> PUT Response text: {ret_contribuinte}")
 

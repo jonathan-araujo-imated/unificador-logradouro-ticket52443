@@ -7,24 +7,24 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def job(ids_bairros_filtro, id_bairro_novo):
-    log.info("Iniciando o job de atualização de Plantas de Valores -> Bairros.")
+def job(ids_logradouros_filtro, id_logradouro_novo):
+    log.info("Iniciando o job de atualização de Plantas de Valores -> Logradouros.")
         
-    if not ids_bairros_filtro:
-        log.error("ids_bairros_filtro vazio.")
+    if not ids_logradouros_filtro:
+        log.error("ids_logradouros_filtro vazio.")
         return
-    if not id_bairro_novo:
-        log.error("id_bairro_novo vazio.")
+    if not id_logradouro_novo:
+        log.error("id_logradouro_novo vazio.")
         return
     
-    for bairro in ids_bairros_filtro:
+    for logradouro in ids_logradouros_filtro:
 
-        planta_valor = get_plantas_filtro(bairro)
+        planta_valor = get_plantas_filtro(logradouro)
         if not planta_valor:
-            log.error(f"Sem registros de planta_valor para o ID_BAIRRO: {bairro}.")
+            log.error(f"Sem registros de planta_valor para o ID_LOGRADOURO: {logradouro}.")
             continue
 
-        for planta in tqdm(planta_valor, desc=f"Atualizando Plantas [Bairro -> {bairro}]"):
+        for planta in tqdm(planta_valor, desc=f"Atualizando Plantas [Logradouro -> {logradouro}]"):
             id_planta = planta["id_planta"]
             getrow = getrows_planta(id_planta)
             if getrow:
@@ -34,10 +34,10 @@ def job(ids_bairros_filtro, id_bairro_novo):
             log.info(f"Processando ID_PLANTA ->{id_planta}")
             planta_dados = get_planta(id_planta)
             
-            put_planta(planta_dados, id_bairro_novo)
+            put_planta(planta_dados, id_logradouro_novo)
 
 
-def get_plantas_filtro(id_bairro):
+def get_plantas_filtro(id_logradouro):
     url_ = "https://tributos.betha.cloud/tributos/v1/api/core/plantasValores"
 
     headers_ = {
@@ -53,7 +53,7 @@ def get_plantas_filtro(id_bairro):
 
     while has_next:
         params_ = {
-            "filter": f"(idBairros in ({id_bairro}))",
+            "filter": f"(idLogradouros in ({id_logradouro}))",
             "limit": limit,
             "offset": offset
         }
@@ -71,7 +71,7 @@ def get_plantas_filtro(id_bairro):
         retorno = response.json()
 
         itens = retorno["content"]
-        ids_plantas = [{"id_planta": item["id"], "id_bairro": id_bairro} for item in itens if "id" in item]
+        ids_plantas = [{"id_planta": item["id"], "id_logradouro": id_logradouro} for item in itens if "id" in item]
         todos_plantas.extend(ids_plantas)
 
         has_next = retorno.get("hasNext", False)
@@ -105,13 +105,13 @@ def get_planta(id_planta):
     
     id_planta_ret = retorno["id"]
     codigo_planta_ret = f"{retorno["ano"]}/{retorno["zoneamento"]}"
-    id_bairro_ret = retorno["bairros"].get("id")
+    id_logradouros_ret = retorno["logradouros"].get("id")
     dados_json = json.dumps(retorno, ensure_ascii=False)
     # dados_json = retorno
 
     ret_planta = {"id_planta": id_planta_ret, 
                   "codigo_planta": codigo_planta_ret,
-                  "id_bairro": id_bairro_ret, 
+                  "id_logradouro": id_logradouros_ret, 
                   "dados_json": dados_json} 
     
     return ret_planta
@@ -121,7 +121,7 @@ def inserir_planta_dados(planta):
         log.info("Nenhuma Planta de Valor para inserir.")
         return
 
-    tabela_nome = "planta_valores_dados"
+    tabela_nome = "planta_valores_logradouro_dados"
     colunas = [
         'id_planta',
         'codigo_planta',
@@ -135,7 +135,7 @@ def inserir_planta_dados(planta):
         return
 
     loader.execute_sql_statements(sql_statements)
-    log.info(f"Planta de Valor inserido: {planta["id_planta"]}")  # Log only the first 50 characters of dados_json
+    log.info(f"Planta de Valor inserido: {planta["id_planta"]}")  
 
 
 def getrows_planta(id_planta):
@@ -148,7 +148,7 @@ def getrows_planta(id_planta):
                         id_planta,
                         codigo_planta,
                         situacao
-                    from planta_valores_dados
+                    from planta_valores_logradouro_dados
                     where id_planta = '{id_planta}'
                     """
                 )
@@ -159,10 +159,14 @@ def getrows_planta(id_planta):
         return None
 
 
-def definir_body_put(planta, id_bairro):
+def definir_body_put(planta, id_logradouro):
 
     if not planta:
-        log.info("Nenhum resultado de 'planta_valores_dados' .")
+        log.info("Nenhum resultado de 'planta_valores_dados'.")
+        return
+    
+    if not id_logradouro:
+        log.info("Nenhum id_logradouro foi informado.")
         return
 
     dados_json = planta["dados_json"]
@@ -173,20 +177,20 @@ def definir_body_put(planta, id_bairro):
             print("Erro ao fazer json.loads em dados_json:", e)
             dados_json = {}
 
-    dados_json["bairros"] = {"id": id_bairro}
+    dados_json["logradouros"] = {"id": id_logradouro}
     dados_json_str = json.dumps(dados_json, ensure_ascii=False)
     body = dados_json_str
 
     return body
 
 
-def put_planta(planta, id_bairro):
+def put_planta(planta, id_logradouro):
     id_planta = planta["id_planta"]
     if not id_planta:
         log.error("PUT -> id_planta não encontrado.")
         return
     
-    body = definir_body_put(planta, id_bairro)
+    body = definir_body_put(planta, id_logradouro)
     if not body:
         log.info("Nenhum body 'definir_body_put()'.")
         return
@@ -216,9 +220,9 @@ def put_planta(planta, id_bairro):
     retorno = response.json()
     
     id_planta_ret = retorno["id"]
-    bairro_ret = retorno["bairros"]
+    logradouro_ret = retorno["logradouros"]
 
-    ret_planta = {"id_planta": id_planta_ret, "bairro": bairro_ret} 
+    ret_planta = {"id_planta": id_planta_ret, "logradouro": logradouro_ret} 
     
     log.info(f"-> PUT Response text: {ret_planta}")
 

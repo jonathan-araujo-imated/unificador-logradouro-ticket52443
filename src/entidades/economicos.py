@@ -7,24 +7,24 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def job(ids_bairros_filtro, id_bairro_novo):
-    log.info("Iniciando o job de atualização de Econômicos -> Bairros.")
+def job(ids_logradouros_filtro, id_logradouro_novo):
+    log.info("Iniciando o job de atualização de Econômicos -> Logradouros.")
         
-    if not ids_bairros_filtro:
-        log.error("ids_bairros_filtro vazio.")
+    if not ids_logradouros_filtro:
+        log.error("ids_logradouros_filtro vazio.")
         return
-    if not id_bairro_novo:
-        log.error("id_bairro_novo vazio.")
+    if not id_logradouro_novo:
+        log.error("id_logradouro_novo vazio.")
         return
     
-    for bairro in ids_bairros_filtro:
+    for logradouro in ids_logradouros_filtro:
 
-        economicos = get_economicos_filtro(bairro)
+        economicos = get_economicos_filtro(logradouro)
         if not economicos:
-            log.error(f"Sem registros de economicos para o ID_BAIRRO: {bairro}.")
+            log.error(f"Sem registros de economicos para o ID_LOGRADOURO: {logradouro}.")
             continue
 
-        for economico in tqdm(economicos, desc=f"Atualizando econômicos [Bairro -> {bairro}]"):
+        for economico in tqdm(economicos, desc=f"Atualizando econômicos [Logradouro -> {logradouro}]"):
             id_economico = economico["id_economico"]
             getrow = getrows_economico(id_economico)
             if getrow:
@@ -34,10 +34,10 @@ def job(ids_bairros_filtro, id_bairro_novo):
             log.info(f"Processando ID_ECONOMICO ->{id_economico}")
             economico_dados = get_economico(id_economico)
             
-            put_economico(economico_dados, id_bairro_novo)
+            put_economico(economico_dados, id_logradouro_novo)
 
 
-def get_economicos_filtro(id_bairro):
+def get_economicos_filtro(id_logradouro):
     url_ = "https://tributos.betha.cloud/tributos/v1/api/cadastros/referentes/economicos"
            
 
@@ -54,7 +54,7 @@ def get_economicos_filtro(id_bairro):
 
     while has_next:
         params_ = {
-            "filter": f"((municipio=4092 and bairro={id_bairro}))",
+            "filter": f"((municipio=4092 and logradouro={id_logradouro}))",
             "limit": limit,
             "offset": offset
         }
@@ -72,7 +72,7 @@ def get_economicos_filtro(id_bairro):
         retorno = response.json()
 
         itens = retorno["content"]
-        ids_economicos = [{"id_economico": item["id"], "id_bairro": id_bairro} for item in itens if "id" in item]
+        ids_economicos = [{"id_economico": item["id"], "id_logradouro": id_logradouro} for item in itens if "id" in item]
         todos_economicos.extend(ids_economicos)
 
         has_next = retorno.get("hasNext", False)
@@ -106,13 +106,13 @@ def get_economico(id_economico):
     
     id_economico_ret = retorno["id"]
     codigo_economico_ret = retorno["codigo"]
-    id_bairro_ret = retorno["bairro"].get("id")
+    id_logradouro_ret = retorno["logradouro"].get("id")
     dados_json = json.dumps(retorno, ensure_ascii=False)
     # dados_json = retorno
 
     ret_economico = {"id_economico": id_economico_ret, 
                   "codigo_economico": codigo_economico_ret,
-                  "id_bairro": id_bairro_ret, 
+                  "id_logradouro": id_logradouro_ret, 
                   "dados_json": dados_json} 
     
     return ret_economico
@@ -122,7 +122,7 @@ def inserir_economico_dados(economico):
         log.info("Nenhum econômico para inserir.")
         return
 
-    tabela_nome = "economicos_dados"
+    tabela_nome = "economicos_logradouro_dados"
     colunas = [
         'id_economico',
         'codigo_economico',
@@ -136,7 +136,7 @@ def inserir_economico_dados(economico):
         return
 
     loader.execute_sql_statements(sql_statements)
-    log.info(f"Econômico inserido: {economico["id_economico"]}")  # Log only the first 50 characters of dados_json
+    log.info(f"Econômico inserido: {economico["id_economico"]}")  
 
 
 def getrows_economico(id_economico):
@@ -149,7 +149,7 @@ def getrows_economico(id_economico):
                         id_economico,
                         codigo_economico,
                         situacao
-                    from economicos_dados
+                    from economicos_logradouro_dados
                     where id_economico = '{id_economico}'
                     """
                 )
@@ -160,10 +160,14 @@ def getrows_economico(id_economico):
         return None
 
 
-def definir_body_put(economico, id_bairro):
+def definir_body_put(economico, id_logradouro):
 
     if not economico:
         log.info("Nenhum resultado de 'economicos_dados' .")
+        return
+    
+    if not id_logradouro:
+        log.error("Nenhum id_logradouro informado.")
         return
 
     dados_json = economico["dados_json"]
@@ -174,20 +178,20 @@ def definir_body_put(economico, id_bairro):
             print("Erro ao fazer json.loads em dados_json:", e)
             dados_json = {}
 
-    dados_json["bairro"] = {"id": id_bairro}
+    dados_json["logradouro"] = {"id": id_logradouro}
     dados_json_str = json.dumps(dados_json, ensure_ascii=False)
     body = dados_json_str
 
     return body
 
 
-def put_economico(economico, id_bairro):
+def put_economico(economico, id_logradouro):
     id_economico = economico["id_economico"]
     if not id_economico:
         log.error("PUT -> id_economico não encontrado.")
         return
     
-    body = definir_body_put(economico, id_bairro)
+    body = definir_body_put(economico, id_logradouro)
     if not body:
         log.info("Nenhum body 'definir_body_put()'.")
         return
@@ -217,9 +221,9 @@ def put_economico(economico, id_bairro):
     retorno = response.json()
     
     id_economico_ret = retorno["id"]
-    bairro_ret = retorno["bairro"]
+    logradouro_ret = retorno["logradouro"]
 
-    ret_economico = {"id_economico": id_economico_ret, "bairro": bairro_ret} 
+    ret_economico = {"id_economico": id_economico_ret, "logradouro": logradouro_ret} 
     
     log.info(f"-> PUT Response text: {ret_economico}")
 

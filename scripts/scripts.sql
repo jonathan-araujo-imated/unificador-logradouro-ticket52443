@@ -9,85 +9,49 @@ create database servicelayer_betha_apitela_pmitatiaia
   connection limit = -1;
 
 
-CREATE TABLE IF NOT EXISTS public.imoveis_dados
-(
-    id integer NOT NULL DEFAULT nextval('imoveis_dados_id_seq'::regclass),
-    id_imovel integer NOT NULL,
-    codigo_imovel character varying(100) COLLATE pg_catalog."default" NOT NULL,
-    situacao text COLLATE pg_catalog."default",
-    dados_json jsonb,
-    CONSTRAINT imoveis_dados_pkey PRIMARY KEY (id)
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public.imoveis_dados
-    OWNER to postgres;
+CREATE TABLE IF NOT EXISTS public.imoveis_logradouro_dados (
+    id SERIAL PRIMARY KEY,
+    id_imovel INTEGER NOT NULL,
+    codigo_imovel VARCHAR(100),
+    situacao TEXT,
+    dados_json JSONB
+);
 
 
+CREATE TABLE IF NOT EXISTS public.economicos_logradouro_dados (
+    id SERIAL PRIMARY KEY,
+    id_economico INTEGER NOT NULL,
+    codigo_economico VARCHAR(100) NOT NULL,
+    situacao TEXT,
+    dados_json JSONB
+);
 
-CREATE TABLE IF NOT EXISTS public.economicos_dados
-(
-    id integer NOT NULL DEFAULT nextval('economicos_dados_id_seq'::regclass),
-    id_economico integer NOT NULL,
-    codigo_economico character varying(100) COLLATE pg_catalog."default" NOT NULL,
-    situacao text COLLATE pg_catalog."default",
-    dados_json jsonb,
-    CONSTRAINT economicos_dados_pkey PRIMARY KEY (id)
-)
 
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public.economicos_dados
-    OWNER to postgres;
+CREATE TABLE IF NOT EXISTS public.contribuintes_logradouro_dados (
+    id SERIAL PRIMARY KEY,
+    id_contribuinte INTEGER NOT NULL,
+    codigo_contribuinte VARCHAR(100) NOT NULL,
+    situacao TEXT,
+    dados_json JSONB
+); 
 
 
 
-CREATE TABLE IF NOT EXISTS public.contribuintes_dados
-(
-    id integer NOT NULL DEFAULT nextval('contribuintes_dados_id_seq'::regclass),
-    id_contribuinte integer NOT NULL,
-    codigo_contribuinte character varying(100) COLLATE pg_catalog."default" NOT NULL,
-    situacao text COLLATE pg_catalog."default",
-    dados_json jsonb,
-    CONSTRAINT contribuintes_dados_pkey PRIMARY KEY (id)
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public.contribuintes_dados
-    OWNER to postgres;   
+CREATE TABLE IF NOT EXISTS public.planta_valores_logradouro_dados (
+    id SERIAL PRIMARY KEY,
+    id_planta INTEGER NOT NULL,
+    codigo_planta VARCHAR(100) NOT NULL,
+    situacao TEXT,
+    dados_json JSONB
+);
 
 
 
-CREATE TABLE IF NOT EXISTS public.planta_valores_dados
-(
-    id integer NOT NULL DEFAULT nextval('planta_valores_dados_id_seq'::regclass),
-    id_planta integer NOT NULL,
-    codigo_planta character varying(100) COLLATE pg_catalog."default" NOT NULL,
-    situacao text COLLATE pg_catalog."default",
-    dados_json jsonb,
-    CONSTRAINT planta_valores_dados_pkey PRIMARY KEY (id)
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public.planta_valores_dados
-    OWNER to postgres;
-
-
-
-
-CREATE TABLE IF NOT EXISTS public.contribuintes_filtro
+CREATE TABLE IF NOT EXISTS public.contribuintes_logradouro_filtro
 (
     id_contribuinte integer NOT NULL,
-    id_bairro integer NOT NULL
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public.contribuintes_filtro
-    OWNER to postgres;
+    id_logradouro integer NOT NULL
+);
 
 
 

@@ -8,24 +8,24 @@ from datetime import datetime
 load_dotenv()
 
 
-def job(ids_bairros_filtro, id_bairro_novo):
-    log.info("Iniciando o job de atualização de imóveis->bairros.")
+def job(ids_logradouros_filtro, id_logradouro_novo):
+    log.info("Iniciando o job de atualização de imóveis->logradouros.")
         
-    if not ids_bairros_filtro:
-        log.error("ids_bairros_filtro vazio.")
+    if not ids_logradouros_filtro:
+        log.error("ids_logradouros_filtro vazio.")
         return
-    if not id_bairro_novo:
-        log.error("id_bairro_novo vazio.")
+    if not id_logradouro_novo:
+        log.error("id_logradouro_novo vazio.")
         return
     
-    for bairro in ids_bairros_filtro:
+    for logradouro in ids_logradouros_filtro:
 
-        imoveis = get_imoveis_filtro(bairro)
+        imoveis = get_imoveis_filtro(logradouro)
         if not imoveis:
-            log.error(f"Sem registros de imoveis para o ID_BAIRRO: {bairro}.")
+            log.error(f"Sem registros de imoveis para o ID_LOGRADOURO: {logradouro}.")
             continue
 
-        for imovel in tqdm(imoveis, desc=f"Atualizando imóveis [Bairro -> {bairro}]"):
+        for imovel in tqdm(imoveis, desc=f"Atualizando imóveis [Logradouro -> {logradouro}]"):
             id_imovel = imovel["id_imovel"]
             getrow = getrows_imovel(id_imovel)
             if getrow:
@@ -35,10 +35,10 @@ def job(ids_bairros_filtro, id_bairro_novo):
             log.info(f"Processando ID_IMOVEL ->{id_imovel}")
             imovel_dados = get_imovel(id_imovel)
             
-            put_imovel(imovel_dados, id_bairro_novo)
+            put_imovel(imovel_dados, id_logradouro_novo)
 
 
-def get_imoveis_filtro(id_bairro):
+def get_imoveis_filtro(id_logradouro):
     url_ = "https://tributos.betha.cloud/tributos/v1/api/cadastros/referentes/imoveis"
 
     headers_ = {
@@ -54,7 +54,7 @@ def get_imoveis_filtro(id_bairro):
 
     while has_next:
         params_ = {
-            "filter": f"(bairro.id in ({id_bairro}))",
+            "filter": f"(logradouro.id in ({id_logradouro}))",
             "limit": limit,
             "offset": offset
         }
@@ -72,7 +72,7 @@ def get_imoveis_filtro(id_bairro):
         retorno = response.json()
 
         itens = retorno["content"]
-        ids_imoveis = [{"id_imovel": item["id"], "id_bairro": id_bairro} for item in itens if "id" in item]
+        ids_imoveis = [{"id_imovel": item["id"], "id_logradouro": id_logradouro} for item in itens if "id" in item]
         todos_imoveis.extend(ids_imoveis)
         # log.info(f"-> Response text: {ids_imoveis}")
 
@@ -82,27 +82,6 @@ def get_imoveis_filtro(id_bairro):
     log.info(f"-> Total de imóveis filtrados: {len(todos_imoveis)}")
     
     return todos_imoveis
-
-
-def inserir_imoveis_filtro(imoveis):
-    if not imoveis:
-        log.info("Nenhum imóvel para inserir.")
-        return
-
-    tabela_nome = "imoveis_filtro"
-    colunas = [
-        'id_imovel',
-        'id_bairro',
-    ]
-    sql_statements = loader.generate_insert_data_sql(tabela_nome, colunas, imoveis)
-    
-    if not sql_statements:
-        log.info("Nenhum SQL gerado para inserção.")
-        return
-
-    # print(sql_statements)
-    loader.execute_sql_statements(sql_statements)
-    log.info(f"Total de imóveis inseridos: {len(imoveis)}")
 
 
 def get_imovel(id_imovel):
@@ -128,13 +107,12 @@ def get_imovel(id_imovel):
     
     id_imovel_ret = retorno["id"]
     codigo_imovel_ret = retorno["codigo"]
-    id_bairro_ret = retorno["bairro"].get("id")
+    id_logradouro_ret = retorno["logradouro"].get("id")
     dados_json = json.dumps(retorno, ensure_ascii=False)
-    # dados_json = retorno
 
     ret_imovel = {"id_imovel": id_imovel_ret, 
                   "codigo_imovel": codigo_imovel_ret,
-                  "id_bairro": id_bairro_ret, 
+                  "id_logradouro": id_logradouro_ret, 
                   "dados_json": dados_json} 
     
     # log.info(f"-> Response text: {ret_imovel}")
@@ -146,7 +124,7 @@ def inserir_imovel_dados(imovel):
         log.info("Nenhum imóvel para inserir.")
         return
 
-    tabela_nome = "imoveis_dados"
+    tabela_nome = "imoveis_logradouro_dados"
     colunas = [
         'id_imovel',
         'codigo_imovel',
@@ -160,7 +138,7 @@ def inserir_imovel_dados(imovel):
         return
 
     loader.execute_sql_statements(sql_statements)
-    log.info(f"Imovel inserido: {imovel["id_imovel"]}")  # Log only the first 50 characters of dados_json
+    log.info(f"Imovel inserido: {imovel["id_imovel"]}")  
 
 
 def getrows_imovel(id_imovel):
@@ -173,7 +151,7 @@ def getrows_imovel(id_imovel):
                         id_imovel,
                         codigo_imovel,
                         situacao
-                    from imoveis_dados
+                    from imoveis_logradouro_dados
                     where id_imovel = '{id_imovel}'
                     """
                 )
@@ -184,11 +162,15 @@ def getrows_imovel(id_imovel):
         return None
 
 
-def definir_body_put(imovel, id_bairro):
+def definir_body_put(imovel, id_logradouro):
     # data_imovel = getrows_imovel(id_imovel)
 
     if not imovel:
-        log.info("Nenhum resultado de 'imoveis_dados' .")
+        log.error("Nenhum resultado de 'imoveis_logradouro_dados' .")
+        return
+    
+    if not id_logradouro:
+        log.error("Nenhum id_logradouro informado.")
         return
 
     dados_json = imovel["dados_json"]
@@ -199,12 +181,12 @@ def definir_body_put(imovel, id_bairro):
             print("Erro ao fazer json.loads em dados_json:", e)
             dados_json = {}
 
-    dados_json["bairro"] = {"id": id_bairro}
+    dados_json["logradouro"] = {"id": id_logradouro}
     data_hoje = datetime.now().strftime("%Y-%m-%d")
     dados_json["alteracaoDetalhes"] = {
                                         "dtVigencia": data_hoje,
-                                        "nroProcesso": "Ticket 49800",
-                                        "observacoes": "Processo de Unificação de Bairros"
+                                        "nroProcesso": f"{os.getenv("TICKET_LOG_ALTER")}",
+                                        "observacoes": "Processo de Unificação de Logradouros"
                                        }
 
     dados_json_str = json.dumps(dados_json, ensure_ascii=False)
@@ -213,13 +195,13 @@ def definir_body_put(imovel, id_bairro):
     return body
 
 
-def put_imovel(imovel, id_bairro):
+def put_imovel(imovel, id_logradouro):
     id_imovel = imovel["id_imovel"]
     if not id_imovel:
         log.error("PUT -> id_imovel não encontrado.")
         return
     
-    body = definir_body_put(imovel, id_bairro)
+    body = definir_body_put(imovel, id_logradouro)
     if not body:
         log.info("Nenhum body 'definir_body_put()'.")
         return
@@ -249,9 +231,9 @@ def put_imovel(imovel, id_bairro):
     retorno = response.json()
     
     id_imovel_ret = retorno["id"]
-    bairro_ret = retorno["bairro"]
+    logradouro_ret = retorno["logradouro"]
 
-    ret_imovel = {"id_imovel": id_imovel_ret, "bairro": bairro_ret} 
+    ret_imovel = {"id_imovel": id_imovel_ret, "logradouro": logradouro_ret} 
     
     log.info(f"-> PUT Response text: {ret_imovel}")
 

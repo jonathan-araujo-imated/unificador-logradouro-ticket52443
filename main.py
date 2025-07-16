@@ -7,45 +7,45 @@ def main():
 
     # 5183919 - "UNIFICA1"
     # 5183939 - "UNIFICA2"
-    ID_BAIRRO_FILTRO = [5183939]
-    ID_BAIRRO_NOVO = 5183919
+    ID_LOGRADOURO_FILTRO = [5183939]
+    ID_LOGRADOURO_NOVO = 5183919
 
     # IMOVEIS
     print('')
-    print(" # Iniciando o processo de Unificação de IMÓVEIS -> Bairros. # ")
+    print(" # Iniciando o processo de Unificação de IMÓVEIS -> Logradouros. # ")
     resposta = input("Executar? (s/N): ").strip().lower() == "s"
     print("Executando." if resposta else "Execução cancelada. ")
     time_inicio = datetime.now()
 
     if resposta:
-        imoveis.job(ID_BAIRRO_FILTRO, ID_BAIRRO_NOVO)
+        imoveis.job(ID_LOGRADOURO_FILTRO, ID_LOGRADOURO_NOVO)
 
     # ECONOMICOS
     print('')
-    print(" # Iniciando o processo de Unificação de ECONÔMICOS -> Bairros. # ")
+    print(" # Iniciando o processo de Unificação de ECONÔMICOS -> Logradouros. # ")
     resposta = input("Executar? (s/N): ").strip().lower() == "s"
     print("Executando." if resposta else "Execução cancelada. ")
 
     if resposta:
-        economicos.job(ID_BAIRRO_FILTRO, ID_BAIRRO_NOVO)
+        economicos.job(ID_LOGRADOURO_FILTRO, ID_LOGRADOURO_NOVO)
 
     # PLANTA VALORES
     print('')
-    print(" # Iniciando o processo de Unificação de PLANTA DE VALORES -> Bairros. # ")
+    print(" # Iniciando o processo de Unificação de PLANTA DE VALORES -> Logradouros. # ")
     resposta = input("Executar? (s/N): ").strip().lower() == "s"
     print("Executando." if resposta else "Execução cancelada. ")
 
     if resposta:
-        planta_valores.job(ID_BAIRRO_FILTRO, ID_BAIRRO_NOVO)
+        planta_valores.job(ID_LOGRADOURO_FILTRO, ID_LOGRADOURO_NOVO)
 
     # CONTRIBUINTES
     print('')
-    print(" # Iniciando o processo de Unificação de CONTRIBUINTES -> Bairros. # ")
+    print(" # Iniciando o processo de Unificação de CONTRIBUINTES -> Logradouros. # ")
     resposta = input("Executar? (s/N): ").strip().lower() == "s"
     print("Executando." if resposta else "Execução cancelada. ")
 
     if resposta:
-        contribuintes.job(ID_BAIRRO_FILTRO, ID_BAIRRO_NOVO)        
+        contribuintes.job(ID_LOGRADOURO_FILTRO, ID_LOGRADOURO_NOVO)        
 
     time_fim = datetime.now()
     print('')
