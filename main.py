@@ -5,10 +5,10 @@ from datetime import datetime
 
 def main():
 
-    # 5183919 - "UNIFICA1"
-    # 5183939 - "UNIFICA2"
-    ID_LOGRADOURO_FILTRO = [5183939]
-    ID_LOGRADOURO_NOVO = 5183919
+    # 10054571 - "codigo": 600,   "descricao": "Rua", "nome": "DAS ACACIAS", 
+    # 10061415 - "codigo": 29342, "descricao": "Rua", "nome": "RUA ACACIAS",
+    ID_LOGRADOURO_FILTRO = [10054571]
+    ID_LOGRADOURO_NOVO = 10061415
 
     # IMOVEIS
     print('')

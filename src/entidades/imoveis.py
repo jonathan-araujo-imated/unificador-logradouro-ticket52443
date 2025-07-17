@@ -34,6 +34,10 @@ def job(ids_logradouros_filtro, id_logradouro_novo):
 
             log.info(f"Processando ID_IMOVEL ->{id_imovel}")
             imovel_dados = get_imovel(id_imovel)
+
+            if not imovel_dados:
+                log.error("Falha ao obter o GET do imóvel.")
+                return
             
             put_imovel(imovel_dados, id_logradouro_novo)
 

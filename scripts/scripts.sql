@@ -62,39 +62,39 @@ select
 codigo_imovel as "Código Imóvel",
 coalesce((substring(situacao from 'ERRO -> 422 (.*)')::jsonb->>'detail')::jsonb->>'message',
 (substring(situacao from 'ERRO -> 422 (.*)')::jsonb->>'detail')::jsonb->>'ImovelProprietario')AS "Mensagem de erro",
-coalesce((dados_json -> 'bairro' ->>'codigo'),'0') || ' - ' || (dados_json -> 'bairro' ->>'nome') AS "Bairro(Código-Nome)"
-from imoveis_dados
+coalesce((dados_json -> 'logradouro' ->>'codigo'),'0') || ' - ' || (dados_json -> 'logradouro' ->>'nome') AS "Logradouro(Código-Nome)"
+from imoveis_logradouro_dados
 where situacao <> 'SUCESSO'
-order by "Bairro(Código-Nome)" asc, codigo_imovel::int asc
+order by "Logradouro(Código-Nome)" asc, codigo_imovel::int asc
 
 select 
 codigo_economico as "Código Econômico",
 coalesce((substring(situacao from 'ERRO -> 422 (.*)')::jsonb->>'detail')::jsonb->>'message',
 (substring(situacao from 'ERRO -> 422 (.*)')::jsonb->>'detail')::jsonb->>'PessoaFisicaDocumento') AS "Mensagem de erro",
-coalesce((dados_json -> 'bairro' ->>'codigo'),'0') || ' - ' || (dados_json -> 'bairro' ->>'nome') AS "Bairro(Código-Nome)"
-from economicos_dados where situacao <> 'SUCESSO'
-order by "Bairro(Código-Nome)" asc, codigo_economico::int asc
+coalesce((dados_json -> 'logradouro' ->>'codigo'),'0') || ' - ' || (dados_json -> 'logradouro' ->>'nome') AS "Logradouro(Código-Nome)"
+from economicos_logradouro_dados where situacao <> 'SUCESSO'
+order by "Logradouro(Código-Nome)" asc, codigo_economico::int asc
 
 
 SELECT
 codigo_contribuinte AS "Código Contribuinte",
 COALESCE((substring(situacao from 'ERRO -> 422 (.*)')::jsonb->>'detail')::jsonb->>'message',
 (substring(situacao from 'ERRO -> 422 (.*)')::jsonb->>'detail')::jsonb->>'PessoaFisicaDocumento') AS "Mensagem de erro",
-COALESCE((dados_json -> 'enderecos' -> 0 -> 'bairro' ->> 'codigo'), '0'
-) || ' - ' || (dados_json -> 'enderecos' -> 0 -> 'bairro' ->> 'nome') AS "Bairro(Código-Nome)"
-FROM contribuintes_dados WHERE situacao <> 'SUCESSO'
+COALESCE((dados_json -> 'enderecos' -> 0 -> 'logradouro' ->> 'codigo'), '0'
+) || ' - ' || (dados_json -> 'enderecos' -> 0 -> 'logradouro' ->> 'nome') AS "Logradouro(Código-Nome)"
+FROM contribuintes_logradouro_dados WHERE situacao <> 'SUCESSO'
 AND (dados_json -> 'enderecos' -> 0 ->> 'principal') = 'SIM'
-ORDER BY "Bairro(Código-Nome)" ASC, codigo_contribuinte::int ASC;
+ORDER BY "Logradouro(Código-Nome)" ASC, codigo_contribuinte::int ASC;
 
 select 
 codigo_planta as "Código Planta e Valores",
 (substring(situacao from 'ERRO -> 400 (.*)')::jsonb->>'message') AS "Mensagem de erro",
-coalesce((dados_json -> 'bairros' ->>'codigo'),'0') || ' - ' || (dados_json -> 'bairros' ->>'nome') AS "Bairro(Código-Nome)"
+coalesce((dados_json -> 'logradouros' ->>'codigo'),'0') || ' - ' || (dados_json -> 'logradouros' ->>'nome') AS "Logradouro(Código-Nome)"
 from planta_valores_dados where situacao <> 'SUCESSO'
-order by "Bairro(Código-Nome)" asc, codigo_planta asc
+order by "Logradouro(Código-Nome)" asc, codigo_planta asc
 
 
-select * from imoveis_dados --where situacao <> 'SUCESSO'
-select * from economicos_dados --where situacao <> 'SUCESSO'
-select * from contribuintes_dados --where situacao <> 'SUCESSO'
-select * from planta_valores_dados --where situacao <> 'SUCESSO'
+select * from imoveis_logradouro_dados --where situacao <> 'SUCESSO'
+select * from economicos_logradouro_dados --where situacao <> 'SUCESSO'
+select * from contribuintes_logradouro_dados --where situacao <> 'SUCESSO'
+select * from planta_valores_logradouro_dados --where situacao <> 'SUCESSO'
