@@ -54,7 +54,7 @@ def get_economicos_filtro(id_logradouro):
 
     while has_next:
         params_ = {
-            "filter": f"((municipio=4092 and logradouro={id_logradouro}))",
+            "filter": f"((municipio=2373 and logradouro={id_logradouro}))",
             "limit": limit,
             "offset": offset
         }

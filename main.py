@@ -7,8 +7,8 @@ def main():
 
     # 10054571 - "codigo": 600,   "descricao": "Rua", "nome": "DAS ACACIAS", 
     # 10061415 - "codigo": 29342, "descricao": "Rua", "nome": "RUA ACACIAS",
-    ID_LOGRADOURO_FILTRO = [10054571]
-    ID_LOGRADOURO_NOVO = 10061415
+    ID_LOGRADOURO_FILTRO = [15232947,15233268]
+    ID_LOGRADOURO_NOVO = 15232899
 
     # IMOVEIS
     print('')

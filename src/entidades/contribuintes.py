@@ -37,7 +37,7 @@ def job(ids_logradouros_filtro, id_logradouro_novo):
                 log.error(f"Falha ao consultar(GET) ID_CONTRIBUINTE: {id_contribuinte}")
                 continue
 
-            put_contribuinte(contribuinte_dados, id_logradouro_novo)
+            put_contribuinte(contribuinte_dados, id_logradouro_novo, logradouro)
 
 
 def get_contribuintes_filtro(id_logradouro):
@@ -56,7 +56,7 @@ def get_contribuintes_filtro(id_logradouro):
     
     while has_next:
         params_ = {
-            "filter": f"(logradouro.id in ({id_logradouro}) and principal='SIM')",
+            "filter": f"(logradouro.id in ({id_logradouro}))",
             "limit": limit,
             "offset": offset
         }
@@ -109,11 +109,13 @@ def get_contribuinte(id_contribuinte):
     id_contribuinte_ret = retorno["id"]
     codigo_contribuinte_ret = retorno["codigo"]
     id_logradouro_ret = retorno["enderecos"][0]["logradouro"].get("id")
+    listaEnderecos = retorno["enderecos"]
     dados_json = json.dumps(retorno, ensure_ascii=False)
     # dados_json = retorno
 
     ret_contribuinte = {"id_contribuinte": id_contribuinte_ret, 
                   "codigo_contribuinte": codigo_contribuinte_ret,
+                  "lista_enderecos": listaEnderecos,
                   "id_logradouro": id_logradouro_ret, 
                   "dados_json": dados_json} 
     
@@ -182,7 +184,7 @@ def getrows_contribuintes_filtro(id_logradouro):
         return None
 
 
-def definir_body_put(contribuinte, id_logradouro):
+def definir_body_put(contribuinte, id_logradouro, idLogadouroFiltro):
 
     if not contribuinte:
         log.info("Nenhum resultado de 'contribuintes_logradouro_dados'.")
@@ -199,21 +201,29 @@ def definir_body_put(contribuinte, id_logradouro):
         except json.JSONDecodeError as e:
             print("Erro ao fazer json.loads em dados_json:", e)
             dados_json = {}
+
+    enderecos = contribuinte["lista_enderecos"]
+    for endereco in enderecos:
+        #print("idEndereco",endereco["id"])
+        if endereco["logradouro"].get("id") == idLogadouroFiltro:
+            #print(endereco["bairro"].get("id"))
+            endereco["logradouro"] = {"id":id_logradouro}
     
-    dados_json["enderecos"][0]["logradouro"] = {"id": id_logradouro}
+    dados_json["enderecos"] = enderecos
+    # dados_json["enderecos"][0]["logradouro"] = {"id": id_logradouro}
     dados_json_str = json.dumps(dados_json, ensure_ascii=False)
     body = dados_json_str
 
     return body
 
 
-def put_contribuinte(contribuinte, id_logradouro):
+def put_contribuinte(contribuinte, id_logradouro, idLogadouroFiltro):
     id_contribuinte = contribuinte["id_contribuinte"]
     if not id_contribuinte:
         log.error("PUT -> id_contribuinte não encontrado.")
         return
     
-    body = definir_body_put(contribuinte, id_logradouro)
+    body = definir_body_put(contribuinte, id_logradouro, idLogadouroFiltro)
 
     if not body:
         log.info("Nenhum body 'definir_body_put()'.")
@@ -244,9 +254,9 @@ def put_contribuinte(contribuinte, id_logradouro):
     retorno = response.json()
     
     id_contribuinte_ret = retorno["id"]
-    logradouro_ret = retorno["enderecos"][0]["logradouro"]
+    logradouro_ret = retorno["enderecos"]
 
-    ret_contribuinte = {"id_contribuinte": id_contribuinte_ret, "logradouro": logradouro_ret} 
+    ret_contribuinte = {"id_contribuinte": id_contribuinte_ret, "logradouroEnderecos": logradouro_ret} 
     
     log.info(f"-> PUT Response text: {ret_contribuinte}")
 
