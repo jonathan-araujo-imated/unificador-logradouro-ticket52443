@@ -36,7 +36,6 @@ CREATE TABLE IF NOT EXISTS public.contribuintes_logradouro_dados (
 ); 
 
 
-
 CREATE TABLE IF NOT EXISTS public.planta_valores_logradouro_dados (
     id SERIAL PRIMARY KEY,
     id_planta INTEGER NOT NULL,
@@ -46,13 +45,20 @@ CREATE TABLE IF NOT EXISTS public.planta_valores_logradouro_dados (
 );
 
 
+CREATE TABLE IF NOT EXISTS public.secoes_logradouro_dados (
+    id SERIAL PRIMARY KEY,
+    id_secao INTEGER NOT NULL,
+    codigo_secao VARCHAR(100) NOT NULL,
+    situacao TEXT,
+    dados_json JSONB
+);
+
 
 CREATE TABLE IF NOT EXISTS public.contribuintes_logradouro_filtro
 (
     id_contribuinte integer NOT NULL,
     id_logradouro integer NOT NULL
 );
-
 
 
 -- Queries acompanhamento
@@ -93,8 +99,17 @@ coalesce((dados_json -> 'logradouros' ->>'codigo'),'0') || ' - ' || (dados_json 
 from planta_valores_dados where situacao <> 'SUCESSO'
 order by "Logradouro(Código-Nome)" asc, codigo_planta asc
 
+select 
+codigo_secao as "Código Seção",
+coalesce((substring(situacao from 'ERRO -> 422 (.*)')::jsonb->>'detail'), 
+(substring(situacao from 'ERRO -> 422 (.*)')::jsonb->>'message')) AS "Mensagem de erro",
+coalesce((dados_json -> 'logradouro' ->>'codigo'),'0') || ' - ' || (dados_json -> 'logradouro' ->>'nome') AS "Logradouro(Código-Nome)"
+from secoes_logradouro_dados where situacao <> 'SUCESSO'
+order by "Logradouro(Código-Nome)" asc, codigo_secao asc
+
 
 select * from imoveis_logradouro_dados --where situacao <> 'SUCESSO'
 select * from economicos_logradouro_dados --where situacao <> 'SUCESSO'
 select * from contribuintes_logradouro_dados --where situacao <> 'SUCESSO'
 select * from planta_valores_logradouro_dados --where situacao <> 'SUCESSO'
+select * from secoes_logradouro_dados --where situacao <> 'SUCESSO'

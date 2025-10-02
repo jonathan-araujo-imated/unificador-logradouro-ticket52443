@@ -1,5 +1,5 @@
 from src import _logger as log, utils
-from src.entidades import imoveis, economicos, planta_valores, contribuintes
+from src.entidades import imoveis, economicos, planta_valores, contribuintes, secoes
 from datetime import datetime
 
 
@@ -7,8 +7,9 @@ def main():
 
     # 10054571 - "codigo": 600,   "descricao": "Rua", "nome": "DAS ACACIAS", 
     # 10061415 - "codigo": 29342, "descricao": "Rua", "nome": "RUA ACACIAS",
-    ID_LOGRADOURO_FILTRO = [15232947,15233268]
-    ID_LOGRADOURO_NOVO = 15232899
+    ID_LOGRADOURO_FILTRO = [10054571]
+    ID_LOGRADOURO_NOVO = 10061415
+
 
     # IMOVEIS
     print('')
@@ -45,7 +46,18 @@ def main():
     print("Executando." if resposta else "Execução cancelada. ")
 
     if resposta:
-        contribuintes.job(ID_LOGRADOURO_FILTRO, ID_LOGRADOURO_NOVO)        
+        contribuintes.job(ID_LOGRADOURO_FILTRO, ID_LOGRADOURO_NOVO)    
+
+    # SECOES
+    print('')
+    print(" # Iniciando o processo de Unificação de SEÇÔES -> Logradouros. # ")
+    resposta = input("Executar? (s/N): ").strip().lower() == "s"
+    print("Executando." if resposta else "Execução cancelada. ")
+    time_inicio = datetime.now()
+
+    if resposta:
+        secoes.job(ID_LOGRADOURO_FILTRO, ID_LOGRADOURO_NOVO)    
+
 
     time_fim = datetime.now()
     print('')
