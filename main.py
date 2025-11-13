@@ -7,9 +7,10 @@ def main():
 
     # 10054571 - "codigo": 600,   "descricao": "Rua", "nome": "DAS ACACIAS", 
     # 10061415 - "codigo": 29342, "descricao": "Rua", "nome": "RUA ACACIAS",
-    ID_LOGRADOURO_FILTRO = [10054571]
-    ID_LOGRADOURO_NOVO = 10061415
-
+    
+    ID_LOGRADOURO_FILTRO = [15232774] # ERRADOS
+    
+    ID_LOGRADOURO_NOVO = 15232989 # CORRETO
 
     # IMOVEIS
     print('')
@@ -38,17 +39,9 @@ def main():
 
     if resposta:
         planta_valores.job(ID_LOGRADOURO_FILTRO, ID_LOGRADOURO_NOVO)
-
-    # CONTRIBUINTES
-    print('')
-    print(" # Iniciando o processo de Unificação de CONTRIBUINTES -> Logradouros. # ")
-    resposta = input("Executar? (s/N): ").strip().lower() == "s"
-    print("Executando." if resposta else "Execução cancelada. ")
-
-    if resposta:
-        contribuintes.job(ID_LOGRADOURO_FILTRO, ID_LOGRADOURO_NOVO)    
-
-    # SECOES
+        
+        
+# SECOES
     print('')
     print(" # Iniciando o processo de Unificação de SEÇÔES -> Logradouros. # ")
     resposta = input("Executar? (s/N): ").strip().lower() == "s"
@@ -58,6 +51,15 @@ def main():
     if resposta:
         secoes.job(ID_LOGRADOURO_FILTRO, ID_LOGRADOURO_NOVO)    
 
+
+    # CONTRIBUINTES
+    print('')
+    print(" # Iniciando o processo de Unificação de CONTRIBUINTES -> Logradouros. # ")
+    resposta = input("Executar? (s/N): ").strip().lower() == "s"
+    print("Executando." if resposta else "Execução cancelada. ")
+
+    if resposta:
+        contribuintes.job(ID_LOGRADOURO_FILTRO, ID_LOGRADOURO_NOVO)    
 
     time_fim = datetime.now()
     print('')

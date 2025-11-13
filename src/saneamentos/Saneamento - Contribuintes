@@ -1,0 +1,313 @@
+removeLetra = {a ->
+  return a.expressao(~/[à|á|ã|â]/).substituirPor("")
+  .expressao(~/[Á|Ã|À|Â]/).substituirPor("")
+  .expressao(~/[é|ê]/).substituirPor("")
+  .expressao(~/[É|É]/).substituirPor("")
+  .expressao(~/[í|î]/).substituirPor("")  
+  .expressao(~/[Í|Î]/).substituirPor("")  
+  .expressao(~/[õ|ó|ô]/).substituirPor("")  
+  .expressao(~/[Õ|Ó|Ô]/).substituirPor("")
+  .expressao(~/[ü|ú|û]/).substituirPor("")
+  .expressao(~/[Ú|Ü|Û]/).substituirPor("")
+  .expressao(~/[ç]/).substituirPor("")
+  .expressao(~/[Ç]/).substituirPor("")
+  .expressao(~/  /).substituirPor("")
+  .expressao(~/[A-z]/).substituirPor("")
+  .expressao(~/[,|\\n\|\/\|_|!|@|#|$|%|¨|&|^|´|:|;|)|(|%]/).substituirPor("")              
+}
+
+/*
+
+ERROS A SEREM TRATADOS FUTURAMENTE
+
+Linha 2011: 2025-08-21T15:29:46 ERRO => 422 => 
+{"message":"Erro no processamento da requisição","detail":{"message":"O município informado no Cadastro de Bairro, difere o município informado para o endereço da pessoa."}}
+Linha 4171: 2025-08-21T15:32:27 ERRO => 422 => 
+{"message":"Erro no processamento da requisição","detail":{"message":"As movimentações com data de início 01/01/2011 e 01/01/2009 não podem conter a mesma opção do simples!"}}
+
+*/
+
+// ------------------------------------------------------------------------------------------------------------
+// 	MAPA DE NATUREZAS E SUAS DEVIDAS QUALIFICAÇÕES CASO ESTEJAM ERRADAS
+// ------------------------------------------------------------------------------------------------------------
+MapaQualificacao = [:]
+MapaQualificacao [2208] = [id:10, descricao:"Diretor"]
+MapaQualificacao [2275] = [id:10, descricao:"Diretor"]
+MapaQualificacao [1228] = [id:16, descricao:"Presidente"]
+MapaQualificacao [2330] = [id:16, descricao:"Presidente"]
+MapaQualificacao [3298] = [id:16, descricao:"Presidente"]
+MapaQualificacao [1260] = [id:16, descricao:"Presidente"]
+MapaQualificacao [1252] = [id:16, descricao:"Presidente"]
+MapaQualificacao [1279] = [id:16, descricao:"Presidente"]
+MapaQualificacao [1244] = [id:16, descricao:"Presidente"]
+MapaQualificacao [3271] = [id:16, descricao:"Presidente"]
+MapaQualificacao [3255] = [id:16, descricao:"Presidente"]
+MapaQualificacao [3263] = [id:16, descricao:"Presidente"]
+MapaQualificacao [3247] = [id:16, descricao:"Presidente"]
+MapaQualificacao [3042] = [id:16, descricao:"Presidente"]
+MapaQualificacao [3123] = [id:16, descricao:"Presidente"]
+MapaQualificacao [3093] = [id:16, descricao:"Presidente"]
+MapaQualificacao [1210] = [id:16, descricao:"Presidente"]
+MapaQualificacao [1112] = [id:16, descricao:"Presidente"]
+MapaQualificacao [1104] = [id:16, descricao:"Presidente"]
+MapaQualificacao [1120] = [id:16, descricao:"Presidente"]
+MapaQualificacao [2143] = [id:16, descricao:"Presidente"]
+MapaQualificacao [1147] = [id:16, descricao:"Presidente"]
+MapaQualificacao [1139] = [id:16, descricao:"Presidente"]
+MapaQualificacao [1155] = [id:16, descricao:"Presidente"]
+MapaQualificacao [3220] = [id:16, descricao:"Presidente"]
+MapaQualificacao [3050] = [id:16, descricao:"Presidente"]
+MapaQualificacao [3999] = [id:16, descricao:"Presidente"]
+MapaQualificacao [2046] = [id:16, descricao:"Presidente"]
+MapaQualificacao [2054] = [id:16, descricao:"Presidente"]
+MapaQualificacao [2097] = [id:16, descricao:"Presidente"]
+MapaQualificacao [2038] = [id:16, descricao:"Presidente"]
+MapaQualificacao [2011] = [id:16, descricao:"Presidente"]
+MapaQualificacao [3131] = [id:16, descricao:"Presidente"]
+MapaQualificacao [3069] = [id:16, descricao:"Presidente"]
+MapaQualificacao [3280] = [id:16, descricao:"Presidente"]
+MapaQualificacao [3204] = [id:17, descricao:"Procurador"]
+MapaQualificacao [2194] = [id:17, descricao:"Procurador"]
+MapaQualificacao [2178] = [id:17, descricao:"Procurador"]
+MapaQualificacao [5002] = [id:40, descricao:"Cônsul"]
+MapaQualificacao [5029] = [id:40, descricao:"Cônsul"]
+MapaQualificacao [2224] = [id:43, descricao:"Responsável"]
+MapaQualificacao [3212] = [id:49, descricao:"Sócio Administrador"]
+MapaQualificacao [2070] = [id:49, descricao:"Sócio Administrador"]
+MapaQualificacao [2240] = [id:49, descricao:"Sócio Administrador"]
+MapaQualificacao [2232] = [id:49, descricao:"Sócio Administrador"]
+MapaQualificacao [2259] = [id:49, descricao:"Sócio Administrador"]
+MapaQualificacao [2062] = [id:49, descricao:"Sócio Administrador"]
+MapaQualificacao [1198] = [id:5, descricao:"Administrador"]
+MapaQualificacao [3107] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1180] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1236] = [id:5, descricao:"Administrador"]
+MapaQualificacao [3115] = [id:5, descricao:"Administrador"]
+MapaQualificacao [3085] = [id:5, descricao:"Administrador"]
+MapaQualificacao [2291] = [id:5, descricao:"Administrador"]
+MapaQualificacao [2283] = [id:5, descricao:"Administrador"]
+MapaQualificacao [2151] = [id:5, descricao:"Administrador"]
+MapaQualificacao [2216] = [id:5, descricao:"Administrador"]
+MapaQualificacao [2160] = [id:5, descricao:"Administrador"]
+MapaQualificacao [3077] = [id:5, descricao:"Administrador"]
+MapaQualificacao [2127] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1171] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1163] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1023] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1015] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1031] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1082] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1074] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1040] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1066] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1201] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1295] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1309] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1325] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1317] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1287] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1341] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1058] = [id:5, descricao:"Administrador"]
+MapaQualificacao [1333] = [id:5, descricao:"Administrador"]
+MapaQualificacao [4090] = [id:51, descricao:"Candidato a Cargo Político Eletivo"]
+MapaQualificacao [3239] = [id:61,descricao:"Responsável Indígena"]
+MapaQualificacao [2321] = [id:65, descricao:"Titular Pessoa Física Residente ou Domiciliado no Brasil"]
+MapaQualificacao [2305] = [id:65, descricao:"Titular Pessoa Física Residente ou Domiciliado no Brasil"]
+MapaQualificacao [2313] = [id:65, descricao:"Titular Pessoa Física Residente ou Domiciliado no Brasil"]
+MapaQualificacao [2135] = [id:50, descricao:"Empresário"]
+MapaQualificacao [3034] = [id:5, descricao:"Oficial de Registro"]
+MapaQualificacao [4120] = [id:59,descricao:"Produtor Rural"]
+MapaQualificacao [5037] = [id:62, descricao:"Representante da Instituição Extraterritorial"]
+MapaQualificacao [5010] = [id:41, descricao:"Representante de Organização Internacional"]
+MapaQualificacao [2100] = [id:23, descricao:"Sócio Capitalista"]
+MapaQualificacao [2089] = [id:24, descricao:"Sócio Comanditado"]
+MapaQualificacao [2267] = [id:24, descricao:"Sócio Comanditado"]
+MapaQualificacao [4014] = [id:34, descricao:"Titular de Empresa Individual Imobiliária"]
+MapaQualificacao [2] = null
+MapaQualificacao [3] = null
+MapaQualificacao [5] = null
+MapaQualificacao [3301] = null
+MapaQualificacao [4] = null
+MapaQualificacao [100] = null
+MapaQualificacao [200] = null
+MapaQualificacao [300] = null
+MapaQualificacao [400] = null
+MapaQualificacao [1] = null
+MapaQualificacao [4081] = null
+MapaQualificacao [500] = null
+MapaQualificacao [4022] = null
+MapaQualificacao [4111] = null
+MapaQualificacao [3310] = null
+MapaQualificacao [3328] = null
+MapaQualificacao [2356] = null
+MapaQualificacao [2348] = null
+
+// ------------------------------------------------------------------------------------------------------------
+// 	LOTES DE CODIGO DE CONTRIBUINTE
+// ------------------------------------------------------------------------------------------------------------
+lista = (14997..20000) // SUGERIDO COLOCAR LOTE DE 15.000 / ULTIMO CODIGO DE CONTRIBUINTE DA ENTIDADE >> 80223
+
+// ------------------------------------------------------------------------------------------------------------
+// 	TOKEN
+// ------------------------------------------------------------------------------------------------------------
+bearer = 'Bearer b05c6032-b7e1-44dc-ad32-bdc437ced686'
+userAcess = '3V1r5V9pwbI='
+
+// ------------------------------------------------------------------------------------------------------------
+// 	FONTE DE DADOS
+// ------------------------------------------------------------------------------------------------------------
+percorrer(lista.collate(50)){k->
+  fonteContribuintes = Dados.tributos.v2.contribuintes.busca(criterio: "codigo in ('${k.join("','")}')", ordenacao: "codigo asc") // A ORDENAÇÃO DE CÓDIGO SERVE PARA SEMPRE -- ${k.join("','")}
+  percorrer (fonteContribuintes) { c ->
+    imprimir c.codigo
+    
+    // ------------------------------------------------------------------------------------------------------------
+    // CONTADOR PARA VER SE HÁ NECESSIDADE DE ENVIO DE DADOS
+    // ------------------------------------------------------------------------------------------------------------
+    
+    temErro = 0
+    
+    // ------------------------------------------------------------------------------------------------------------
+    // 	CAPTANDO O JSON A SER CORRIGIDO
+    // ------------------------------------------------------------------------------------------------------------
+    
+    requisicao = Http.servico('https://tributos.betha.cloud/tributos/v1/api/cadastros/referentes/contribuintes/'+c.id)
+    .cabecalho('Authorization', bearer)
+    .cabecalho('User-Access', userAcess)  
+    requisicao = requisicao.GET()
+    jsonCorrigido =  JSON.ler(requisicao.conteudo())  
+    // ------------------------------------------------------------------------------------------------------------
+    // 	VARIAVEIS
+    // ------------------------------------------------------------------------------------------------------------
+    naturezaJud = nulo;
+    qualificaJud = nulo;
+    porteEmp = "-";
+    optanteSN = "-";
+    rgDocumento = nulo;
+    obito = nulo;
+    nascimento = nulo;
+    inscEstadual = "-";
+    inscMunicipal = jsonCorrigido.inscricaoMunicipal?:"-";
+    
+    se(c.tipoPessoa.valor == 'FISICA'){
+      rgDocumento = c.pessoaFisicaDocumentos?.nroRg?:nulo;
+      obito = "$c.pessoaFisica.dtObito" == "Wed Jan 01 00:00:00 BRT 1800" ? nulo : c.pessoaFisica.dtObito
+      nascimento = "$c.pessoaFisica.dtNascimento" == "Wed Jan 01 00:00:00 BRT 1800" ? nulo : c.pessoaFisica.dtNascimento    
+    }
+    se(c.tipoPessoa.valor == 'JURIDICA'){
+      naturezaJud = c.pessoaJuridica?.naturezaJuridica?.id?:nulo;
+      qualificaJud = c.pessoaJuridica?.qualificacao?.id?:nulo;
+      porteEmp = jsonCorrigido?.pessoaJuridica?.porteEmpresa?:"-";
+      optanteSN = c.optanteSimplesNacional?.valor?:"-";
+      inscEstadual = jsonCorrigido.pessoaJuridica?.inscricaoEstadual?:"-";
+    }   
+    
+    // ------------------------------------------------------------------------------------------------------------
+    // 	CORREÇÃO DE QUALIFICAÇÕES INDEVIDAS
+    // ------------------------------------------------------------------------------------------------------------
+    
+    se(naturezaJud!=nulo && qualificaJud!=nulo){
+      
+      requisicao = Http.servico('https://tributos.betha.cloud/tributos/v1/api/cadastros/cadastros-auxiliares/qualificacoes?filter=(descricao+like+%22%2525%2525%22)+and+naturezaJuridica.id+%3D+'+naturezaJud+'&limit=25&offset=0&sort=descricao+asc')
+      .cabecalho('Authorization',bearer)
+      .cabecalho('User-Access',userAcess)  
+      requisicao = requisicao.GET()
+      variavelGet =  JSON.ler(requisicao.conteudo())
+      
+      se(!(qualificaJud.toInteger() in variavelGet.content.id)){
+        imprimir "entrou CORREÇÃO DE QUALIFICAÇÕES INDEVIDAS"
+        identificador = MapaQualificacao[naturezaJud.toInteger()]?.id?:null
+        descricaoNat = MapaQualificacao[naturezaJud.toInteger()]?.descricao?:null
+        
+        jsonCorrigido.pessoaJuridica.qualificacao = [id: identificador , descricao: "$descricaoNat"]
+        
+        temErro += 1
+        //imprimir  jsonCorrigido
+      }
+    }
+    
+    // ------------------------------------------------------------------------------------------------------------
+    // 	CORREÇÃO DE INSCRICAO ESTADUAL/MUNICIPAL INDEVIDA
+    // ------------------------------------------------------------------------------------------------------------
+    
+    se(inscEstadual.size() > removeLetra(inscEstadual).size()){
+      jsonCorrigido.pessoaJuridica.inscricaoEstadual = nulo   
+      temErro += 1
+       imprimir "entrou INSCRICAO ESTADUAL INDEVIDA"
+    }
+    se(inscMunicipal.size() > removeLetra(inscMunicipal).size()){
+      jsonCorrigido.inscricaoMunicipal = nulo
+      temErro += 1
+       imprimir "entrou INSCRICAO MUNICIPAL INDEVIDA"
+    }
+    // ------------------------------------------------------------------------------------------------------------
+    // 	CORREÇÃO DE OPTANTES DO SIMPLES - SOMENTE AS OPÇÕES DE PORTE ABAIXO PODEM SER OPTANTES
+    // ------------------------------------------------------------------------------------------------------------
+    listaNaoOptantes = ['EMPRESA_GRANDE_PORTE','NAO_CLASSIFICADA','EMPRESA_MEDIO_PORTE']
+    se(optanteSN == 'SIM' && porteEmp in listaNaoOptantes){      
+      imprimir "entrou ORREÇÃO DE OPTANTES DO SIMPLES"
+      jsonCorrigido.pessoaJuridica.porteEmpresa = "DEMAIS"  
+      temErro += 1
+      //imprimir  jsonCorrigido
+    }
+    // ------------------------------------------------------------------------------------------------------------
+    // 	CORREÇÃO DE MICROEMPREENDEDOR_INDIVIDUAL - NÂO PODE POSSUIR SÓCIOS
+    // ------------------------------------------------------------------------------------------------------------
+    
+    se(porteEmp == 'MICROEMPREENDEDOR_INDIVIDUAL' && jsonCorrigido.socios != nulo){ 
+      imprimir "entrou CORREÇÃO DE MICROEMPREENDEDOR_INDIVIDUAL"
+      jsonCorrigido.socios = nulo   
+      temErro += 1
+      //imprimir  jsonCorrigido
+    }
+    
+    // ------------------------------------------------------------------------------------------------------------
+    // 	CORREÇÃO DATA DE ÓBITO
+    // ------------------------------------------------------------------------------------------------------------
+    
+    se(nascimento != nulo && obito != nulo && obito < nascimento){
+      imprimir "entrou CORREÇÃO DATA DE ÓBITO"
+      jsonCorrigido.pessoaFisica.dtObito = nulo
+      temErro += 1
+      //imprimir  jsonCorrigido
+    }
+    
+    // ------------------------------------------------------------------------------------------------------------
+    // 	CORREÇÃO DE RG INVALIDO
+    // ------------------------------------------------------------------------------------------------------------
+    tamanhoRg = rgDocumento?.size()?:0
+    rgDocumentoZeros = rgDocumento?.replace("0","")?:""
+    rgDocumentoNoves = rgDocumento?.replace("9","")?:""
+    se(rgDocumento != nulo && ( rgDocumentoNoves.size() <= 0 || rgDocumentoZeros.size() <= 0 || tamanhoRg < 6 )){        
+      imprimir "entrou CORREÇÃO DE RG INVALIDO"
+      jsonCorrigido.pessoaFisicaDocumento.nroRg = nulo 
+      jsonCorrigido.pessoaFisicaDocumento.orgaoEmissorRg = nulo   
+      jsonCorrigido.pessoaFisicaDocumento.estadoRg = nulo   
+      jsonCorrigido.pessoaFisicaDocumento.dtEmissaoRg = nulo           
+      temErro += 1
+      //imprimir  jsonCorrigido
+    }
+    
+    // ------------------------------------------------------------------------------------------------------------
+    // 	ENVIO DEFINITIVO DOS DADOS
+    // ------------------------------------------------------------------------------------------------------------
+    se(temErro > 0){
+      imprimir jsonCorrigido
+      imprimir "entrou no envio"
+      requisicao = Http.servico('https://tributos.betha.cloud/tributos/v1/api/cadastros/referentes/contribuintes/'+c.id)
+      .cabecalho('Authorization',bearer)
+      .cabecalho('User-Access',userAcess)  
+      requisicao = requisicao.PUT(JSON.escrever(jsonCorrigido), Http.JSON)
+      
+      se(!(requisicao.codigo() in 200..205)){
+        imprimir "ERRO => ${requisicao.codigo()} => ${requisicao.conteudo()}"
+      }
+      esperar 1.segundo
+    }
+  }
+}
+
+
+
+
+

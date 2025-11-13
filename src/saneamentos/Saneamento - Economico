@@ -1,0 +1,158 @@
+esquema=[teste:Esquema.caracter]
+fonte = Dados.dinamico.v2.novo(esquema)
+
+// ------------------------------------------------------------------------------------------------------------
+/* erros não corrigidos
+
+{"message":"Erro no processamento da requisição","detail":{"message":"A inscrição estadual deve conter somente números, (.) e (-)."}}
+
+{"message":"Erro no processamento da requisição","detail":{"message":"As movimentações com data de início 31/01/2015 e 24/04/2013 não podem conter a mesma opção do simples!"}}
+
+*/
+// ------------------------------------------------------------------------------------------------------------
+
+// ------------------------------------------------------------------------------------------------------------
+// 	LOTES DE CODIGO DE CONTRIBUINTE
+// ------------------------------------------------------------------------------------------------------------
+lista = (29000..30054) // SUGERIDO COLOCAR LOTE DE 5.000 / ULTIMO CODIGO DE ECONOMICO DA ENTIDADE >> 30046
+// ------------------------------------------------------------------------------------------------------------
+// 	TOKEN
+// ------------------------------------------------------------------------------------------------------------
+bearer = 'Bearer 578d7029-5332-4433-95f9-3b99e1084775'
+userAcess = '5PN72jk7ogY='
+// ------------------------------------------------------------------------------------------------------------
+// 	FONTE DE DADOS
+// ------------------------------------------------------------------------------------------------------------
+percorrer(lista.collate(50)){k->
+  economicos = Dados.tributos.v2.economicos.busca(criterio: "codigo in (${k.join(",")})", ordenacao: "codigo asc") // A ORDENAÇÃO DE CÓDIGO SERVE PARA CONTROLE DE QUAIS JA FORAM  -- ${k.join(",")}
+  percorrer (economicos) { e ->
+    imprimir e.codigo
+    // ------------------------------------------------------------------------------------------------------------
+    // CONTADOR PARA VER SE HÁ NECESSIDADE DE ENVIO DE DADOS
+    // ------------------------------------------------------------------------------------------------------------
+    
+    temErro = 0
+    
+    // ------------------------------------------------------------------------------------------------------------
+    // 	CAPTANDO O JSON A SER CORRIGIDO
+    // ------------------------------------------------------------------------------------------------------------
+    
+    requisicao = Http.servico('https://tributos.betha.cloud/tributos/v1/api/cadastros/referentes/economicos/'+e.id)
+    .cabecalho('Authorization', bearer)
+    .cabecalho('User-Access', userAcess)  
+    requisicao = requisicao.GET()
+    jsonCorrigido =  JSON.ler(requisicao.conteudo())  
+    
+    // ------------------------------------------------------------------------------------------------------------
+    // 	VARIAVEIS
+    // ------------------------------------------------------------------------------------------------------------
+    
+    
+    // ------------------------------------------------------------------------------------------------------------
+    // 	CORREÇÃO - SEM SERVIÇO PRINCIPAL
+    // ------------------------------------------------------------------------------------------------------------
+    
+    servico = Dados.tributos.v2.economico.servicos.busca(criterio: "principal = 'SIM'",parametros:["idEconomico":e.id],primeiro:true)?:nulo
+    
+    se(servico == nulo && jsonCorrigido.servicos[0] != nulo){
+      imprimir "entrou na correção de serviço"
+      jsonCorrigido.servicos[0].principal = "SIM"
+      jsonCorrigido.servicos[0].situacao = "ATIVO"
+      temErro += 1
+      //imprimir  jsonCorrigido
+    }
+    
+    // ------------------------------------------------------------------------------------------------------------
+    // 	CORREÇÃO - SEM CNAE PRINCIPAL
+    // ------------------------------------------------------------------------------------------------------------
+    
+    cnae = Dados.tributos.v2.economico.atividades.busca(criterio: "principal = 'SIM'",parametros:["idEconomico":e.id],primeiro:true)?:nulo
+    
+    se(cnae == nulo && jsonCorrigido.cnaes[0] != nulo){
+      imprimir "entrou na correção de cnaes"
+      jsonCorrigido.cnaes[0].principal = "SIM"
+      jsonCorrigido.cnaes[0].situacao = "ATIVO"
+      temErro += 1
+      //imprimir  jsonCorrigido
+    }
+    
+    // ------------------------------------------------------------------------------------------------------------
+    // 	CORREÇÃO - MAIS DE UM PRINCIPAL
+    // ------------------------------------------------------------------------------------------------------------
+    se(jsonCorrigido.principal=="SIM"){
+     dadosEco = Dados.tributos.v2.economicos.busca(criterio: "contribuinte.id = $e.contribuinte.id and principal = 'SIM' and id not in ($e.id)")
+    
+     percorrer (dadosEco) { ec ->
+       imprimir "entrou na correção de mais de um principal"
+       conteudo = [
+         idIntegracao: "$ec.id correcao",
+         economicos: [
+           idGerado: [
+             id: ec.id
+           ],
+           economicoPrincipal: "NAO"
+         ]
+       ];
+      
+       imprimir JSON.escrever(conteudo);
+       url = "https://tributos.betha.cloud/service-layer-tributos/api/economicos"
+       requisicao = Http.servico(url).chaveIntegracao(Variavel.token)
+       requisicao = requisicao.PATCH(JSON.escrever(conteudo), Http.JSON)
+      
+       se(!(requisicao.codigo() in 200..205)){
+         imprimir "ERRO => ${requisicao.codigo()} => ${requisicao.conteudo()}"
+       } 
+       esperar 2.segundo
+     }
+    }
+    // ------------------------------------------------------------------------------------------------------------
+    // 	CORREÇÃO - CNPJ EM MAIS DE UM ECONOMICO ATIVO
+    // ------------------------------------------------------------------------------------------------------------
+    
+    ativos = ['Em aberto com alvará provisório','Em atividade']
+    
+    se(e.situacao.descricao in ativos){
+      
+      dadosEco = Dados.tributos.v2.economicos.busca(criterio: "contribuinte.cpfCnpj = '$e.contribuinte.cpfCnpj' and id not in ($e.id) and situacao not in ('CANCELADO','BAIXADO')")
+      percorrer(dadosEco){d->
+        imprimir "entrou na correção de mais de um principal"
+        conteudo = [
+          idIntegracao: "$d.id correcao",
+          economicos: [
+            idGerado: [
+              id: d.id
+            ],
+            situacaoEconomico: "CANCELADO"
+          ]
+        ];
+        
+        imprimir JSON.escrever(conteudo);
+        url = "https://tributos.betha.cloud/service-layer-tributos/api/economicos"
+        requisicao = Http.servico(url).chaveIntegracao(Variavel.token)
+        requisicao = requisicao.PATCH(JSON.escrever(conteudo), Http.JSON)
+        
+        se(!(requisicao.codigo() in 200..205)){
+          imprimir "ERRO => ${requisicao.codigo()} => ${requisicao.conteudo()}"
+        } 
+        esperar 1.segundo
+      }
+    }
+    // ------------------------------------------------------------------------------------------------------------
+    // 	ENVIO DEFINITIVO DOS DADOS
+    // ------------------------------------------------------------------------------------------------------------
+    se(temErro > 0){
+      imprimir jsonCorrigido
+      imprimir "entrou no envio"
+      requisicao = Http.servico('https://tributos.betha.cloud/tributos/v1/api/cadastros/referentes/economicos/'+e.id)
+      .cabecalho('Authorization',bearer)
+      .cabecalho('User-Access',userAcess)  
+      requisicao = requisicao.PUT(JSON.escrever(jsonCorrigido), Http.JSON)
+      
+      se(!(requisicao.codigo() in 200..205)){
+        imprimir "ERRO => ${requisicao.codigo()} => ${requisicao.conteudo()}"
+      } 
+      esperar 1.segundo
+    }
+  }
+}  
+retornar fonte;

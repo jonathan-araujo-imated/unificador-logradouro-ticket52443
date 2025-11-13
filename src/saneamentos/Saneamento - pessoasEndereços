@@ -1,0 +1,124 @@
+
+// DEPOIS USAR A API DE DELETE PRA REMOVER ENDEREÇOS INVALIDOS, USANDO A MESMA ESTRUTURA ABAIXO APENAS DEIXANDO ID GERADO E MUDANDO O MÉTODO DA REQUISIÇÃO
+
+// Alegria
+filtroEnderecos = "bairro.id in (2362056,2957561,2442173,2089798,2090304,2089114,2093189,2089136,2089210,2090763,2091153,2092309,2093204,2092284,2090604,  2089649,3348619,2592799,2789579,2898779,2092529,2089115,2089967,2090847,2093212,2093339,2090297,2900699,2090948)" // id certo >> 2092517
+fonteEnderecos = Dados.tributos.v2.contribuintes.enderecos;
+dadosEnderecos = fonteEnderecos.busca(criterio: filtroEnderecos)
+percorrer(dadosEnderecos) {
+    i ->
+    imprimir i
+
+    conteudo = [
+        idIntegracao: "$i.id",
+        pessoasEnderecos: [
+            idGerado: [
+                id: i.id
+            ],
+            idPessoa: i.idContribuinte,
+            idBairro: 2092517,
+            principal: "$i.principal.valor",
+            ordem: 1
+        ]
+    ];  
+    imprimir "JSON: " + JSON.escrever(conteudo);
+    url = "https://tributos.betha.cloud/service-layer-tributos/api/pessoasEnderecos"
+    requisicao = Http.servico(url).chaveIntegracao(Variavel.token)
+    requisicao = requisicao.PATCH(JSON.escrever(conteudo), Http.JSON)
+    imprimir "LOTE: " + requisicao.conteudo()
+    se(!(requisicao.codigo() in 200..205)) {
+      imprimir "ERRO => ${requisicao.codigo()} => ${requisicao.conteudo()}"
+    }
+}
+
+// Paraiso
+filtroEnderecos = "bairro.id in (2090198,2090632,2898960,2090255,2089908,2091209,5398699,2898119,2926999,2915539,2899104,2091355,2899217)" // id certo >> 2089365
+fonteEnderecos = Dados.tributos.v2.contribuintes.enderecos;
+dadosEnderecos = fonteEnderecos.busca(criterio: filtroEnderecos)
+percorrer(dadosEnderecos) {
+    i ->
+    imprimir i
+
+    conteudo = [
+        idIntegracao: "$i.id",
+        pessoasEnderecos: [
+            idGerado: [
+                id: i.id
+            ],
+            idPessoa: i.idContribuinte,
+            idBairro: 2089365,
+            principal: "$i.principal.valor",
+            ordem: 1
+        ]
+    ];  
+    imprimir "JSON: " + JSON.escrever(conteudo);
+    url = "https://tributos.betha.cloud/service-layer-tributos/api/pessoasEnderecos"
+    requisicao = Http.servico(url).chaveIntegracao(Variavel.token)
+    requisicao = requisicao.PATCH(JSON.escrever(conteudo), Http.JSON)
+    imprimir "LOTE: " + requisicao.conteudo()
+    se(!(requisicao.codigo() in 200..205)) {
+      imprimir "ERRO => ${requisicao.codigo()} => ${requisicao.conteudo()}"
+    }
+}
+
+
+// Maua 
+filtroEnderecos = "bairro.id in (2090292,2090797,2090801,2900039,2898277,2092221,2090800,2092515,2092208,2092003,2092456,2092476,5339599,2092454,2092244,2092146,2897277,2898330)" // id certo >> 2089318
+fonteEnderecos = Dados.tributos.v2.contribuintes.enderecos;
+dadosEnderecos = fonteEnderecos.busca(criterio: filtroEnderecos)
+percorrer(dadosEnderecos) {
+    i ->
+    imprimir i
+
+    conteudo = [
+        idIntegracao: "$i.id",
+        pessoasEnderecos: [
+            idGerado: [
+                id: i.id
+            ],
+            idPessoa: i.idContribuinte,
+            idBairro: 2089318,
+            principal: "$i.principal.valor",
+            ordem: 1
+        ]
+    ];  
+    imprimir "JSON: " + JSON.escrever(conteudo);
+    url = "https://tributos.betha.cloud/service-layer-tributos/api/pessoasEnderecos"
+    requisicao = Http.servico(url).chaveIntegracao(Variavel.token)
+    requisicao = requisicao.PATCH(JSON.escrever(conteudo), Http.JSON)
+    imprimir "LOTE: " + requisicao.conteudo()
+    se(!(requisicao.codigo() in 200..205)) {
+      imprimir "ERRO => ${requisicao.codigo()} => ${requisicao.conteudo()}"
+    }
+}
+
+
+//Campos Eliseos
+filtroEnderecos = "bairro.id in (2089800,2090267,2089179,2089196,2090810,2092247,3341779,2093089,2898019,3728559,2897821,2588099,2898637,2090310,2092228,2090210,2090169,2092513,2093194,2093391,5416259,5199379,2929181,2092495,2090616 )" // id certo >> 2089253
+fonteEnderecos = Dados.tributos.v2.contribuintes.enderecos;
+dadosEnderecos = fonteEnderecos.busca(criterio: filtroEnderecos)
+percorrer(dadosEnderecos) {
+    i ->
+    imprimir i
+
+    conteudo = [
+        idIntegracao: "$i.id",
+        pessoasEnderecos: [
+            idGerado: [
+                id: i.id
+            ],
+            idPessoa: i.idContribuinte,
+            idBairro: 2089253,
+            principal: "$i.principal.valor",
+            ordem: 1
+        ]
+    ];  
+    imprimir "JSON: " + JSON.escrever(conteudo);
+    url = "https://tributos.betha.cloud/service-layer-tributos/api/pessoasEnderecos"
+    requisicao = Http.servico(url).chaveIntegracao(Variavel.token)
+    requisicao = requisicao.PATCH(JSON.escrever(conteudo), Http.JSON)
+    imprimir "LOTE: " + requisicao.conteudo()
+    se(!(requisicao.codigo() in 200..205)) {
+      imprimir "ERRO => ${requisicao.codigo()} => ${requisicao.conteudo()}"
+    }
+}

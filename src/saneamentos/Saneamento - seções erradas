@@ -1,0 +1,58 @@
+ruasEditadas = [15232899 ,
+                15232463 ,
+                15232947 ,
+                15233268 ,
+                15233043 ,
+                15233138 ];
+
+bearer = 'Bearer feddfc59-c075-407c-985d-691fad3cd3af'
+userAcess = '3V1r5V9pwbI='
+
+fonteImoveis = Dados.tributos.v2.imoveis;
+dadosImoveis = fonteImoveis.busca(criterio:"logradouro.id in (${ruasEditadas.join(",")})", ordenacao: "id asc")
+percorrer (dadosImoveis) { im ->
+ // imprimir im
+  se(im.secao?:false){
+    
+    // pega a seção certa no imóvel
+    
+    requisicao = Http.servico('https://tributos.betha.cloud/tributos/v1/api/cadastros/enderecos/secoes?filter=(nroSecao+like+%22%2525%2525%22+and+logradouro.id+%3D+'+im.logradouro.id+')&limit=25&offset=0')
+    .cabecalho('Authorization',bearer)
+    .cabecalho('User-Access',userAcess)  
+    requisicao = requisicao.GET()
+    variavelGet =  JSON.ler(requisicao.conteudo())
+    mapaSecoes = [:]
+    
+    percorrer(variavelGet.content){p->
+      mapaSecoes[p.nroSecao] = p.id
+      //imprimir p 
+    }
+    
+    secaoCerta = mapaSecoes[im.secao.toInteger()]
+    
+    // atualiza seção no imovel 
+    
+    requisicao = Http.servico('https://tributos.betha.cloud/tributos/v1/api/cadastros/referentes/imoveis/'+im.id)
+    .cabecalho('Authorization',bearer)
+    .cabecalho('User-Access',userAcess)  
+    requisicao = requisicao.GET()
+    jsonImovel =  JSON.ler(requisicao.conteudo())
+    
+    se(jsonImovel.secao.id != secaoCerta){
+      
+      jsonImovel.secao.id = secaoCerta
+      imprimir jsonImovel
+      
+      //enviando o corrigido
+      
+      requisicao = Http.servico('https://tributos.betha.cloud/tributos/v1/api/cadastros/referentes/imoveis/'+im.id)
+      .cabecalho('Authorization',bearer)
+      .cabecalho('User-Access',userAcess)  
+      requisicao = requisicao.PUT(JSON.escrever(jsonImovel), Http.JSON)
+      
+      se(!(requisicao.codigo() in 200..205)){
+        imprimir "ERRO => ${requisicao.codigo()} => ${requisicao.conteudo()}"
+      } 
+    }
+  }
+}

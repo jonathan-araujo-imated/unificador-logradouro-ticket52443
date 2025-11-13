@@ -1,0 +1,66 @@
+
+// ------------------------------------------------------------------------------------------------------------
+// 	LOTES DE CODIGO DE IMOVEIS
+// ------------------------------------------------------------------------------------------------------------
+lista = (1..10000) // SUGERIDO COLOCAR LOTE DE 10.000 / ULTIMO CODIGO DE IMOVEL DA ENTIDADE 
+
+// ------------------------------------------------------------------------------------------------------------
+// 	TOKEN
+// ------------------------------------------------------------------------------------------------------------
+bearer = 'Bearer 8c43b238-bedb-41c4-8b29-5dd03a946274'
+userAcess = '3V1r5V9pwbI='
+// ------------------------------------------------------------------------------------------------------------
+// 	FONTE DE DADOS
+// ------------------------------------------------------------------------------------------------------------
+percorrer(lista.collate(50)){k->
+  imoveis = Dados.tributos.v2.imoveis.busca(criterio: "codigo in (${k.join(",")})", ordenacao: "codigo asc") // A ORDENAÇÃO DE CÓDIGO SERVE PARA SEMPRE 
+  percorrer (imoveis) { i ->
+    // ------------------------------------------------------------------------------------------------------------
+    // CONTADOR PARA VER SE HÁ NECESSIDADE DE ENVIO DE DADOS
+    // ------------------------------------------------------------------------------------------------------------
+    
+    temErro = 0
+    
+    // ------------------------------------------------------------------------------------------------------------
+    // 	CAPTANDO O JSON A SER CORRIGIDO
+    // ------------------------------------------------------------------------------------------------------------
+    
+    requisicao = Http.servico('https://tributos.betha.cloud/tributos/v1/api/cadastros/referentes/imoveis/'+i.id)
+    .cabecalho('Authorization',bearer)
+    .cabecalho('User-Access',userAcess)  
+    requisicao = requisicao.GET()
+    jsonCorrigido =  JSON.ler(requisicao.conteudo())
+    imprimir jsonCorrigido 
+    
+    // ------------------------------------------------------------------------------------------------------------
+    // 	VARIAVEIS
+    // ------------------------------------------------------------------------------------------------------------
+    
+    // ------------------------------------------------------------------------------------------------------------
+    // 	CORRESPONSAVEL INDEVIDO
+    // ------------------------------------------------------------------------------------------------------------
+    
+    se(i.responsavel.id == i.corresponsavel.id){
+      temErro += 1
+      jsonCorrigido.corresponsaveis = []
+      jsonCorrigido.corresponsavel = null
+    }
+    
+    // ------------------------------------------------------------------------------------------------------------
+    // 	ENVIO DEFINITIVO DOS DADOS
+    // ------------------------------------------------------------------------------------------------------------
+    se(temErro > 0){
+      imprimir "entrou no envio"
+      requisicao = Http.servico('https://tributos.betha.cloud/tributos/v1/api/cadastros/referentes/imoveis/'+i.id)
+      .cabecalho('Authorization',bearer)
+      .cabecalho('User-Access',userAcess)  
+      requisicao = requisicao.PUT(JSON.escrever(jsonCorrigido), Http.JSON)
+      
+      se(!(requisicao.codigo() in 200..205)){
+        imprimir "ERRO => ${requisicao.codigo()} => ${requisicao.conteudo()}"
+      }
+      //  esperar 1.segundo
+    }
+  }  
+}
+
